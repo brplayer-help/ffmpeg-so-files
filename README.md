@@ -25,7 +25,7 @@
    ```
 
 ### Build Script: Safe Core
-script is already given you can modify tell ai to just give you whant you want.
+script is already given you can modify to your needs and replace the .so files.
 
 
 
