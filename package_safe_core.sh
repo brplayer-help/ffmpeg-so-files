@@ -120,25 +120,47 @@ build_ffmpeg() {
     sed -i "s/SLIB_INSTALL_NAME='\$(SLIBNAME_WITH_VERSION)'/SLIB_INSTALL_NAME='\$(SLIBNAME)'/g" configure
     sed -i "s/SLIB_INSTALL_LINKS='\$(SLIBNAME_WITH_MAJOR) \$(SLIBNAME)'/SLIB_INSTALL_LINKS='\$(SLIBNAME)'/g" configure
     
-    # Configure for Safe Core - ROYALTY-FREE CODECS ONLY
+    # Configure for Safe Core - EXPIRING PATENT CODECS INCLUDED
     # 
-    # IMPORTANT: This build excludes ALL patented codecs for Play Store safety:
-    #   - NO DTS (patent-encumbered)
-    #   - NO TrueHD/MLP (patent-encumbered)  
-    #   - NO AC3/E-AC3 (Dolby patents)
-    #   - NO AAC (patent pool)
-    #   - NO H.264/H.265 (patent pool)
-    #   - NO MPEG-2/MPEG-4 (patent pool)
-    #   - NO MP3 encoder (decoder is patent-free since 2017)
+    # This build includes codecs with patents expiring by 2027-2028:
+    #   - H.264/AVC (core patents expiring 2027-2028)
+    #   - AAC (patents expiring 2027-2028)  
+    #   - AC3 (Dolby Digital - patents largely expired)
+    #   - MP3 (patent-free since 2017)
     #
-    # INCLUDED (royalty-free):
-    #   Audio: Opus, Vorbis, FLAC, ALAC, PCM, MP3 decoder
-    #   Video: VP8, VP9, AV1, Theora
+    # EXCLUDED (active patents/enforcement):
+    #   - DTS/DTS-HD (patent-encumbered)
+    #   - TrueHD/MLP (Dolby lossless patents)
+    #   - HEVC/H.265 (patents until late 2030s)
+    #   - E-AC3/Dolby Digital Plus (Dolby actively enforces)
     #
-    # Users can import codec pack for patented codecs via Settings > Codec Pack
+    # INCLUDED:
+    #   Audio: Opus, Vorbis, FLAC, ALAC, PCM, MP3, AAC, AC3
+    #   Video: VP8, VP9, AV1, Theora, H.264
     #
     # NEON/SIMD optimizations enabled for better performance
     #
+    # DAV1D paths for AV1 software decoding
+    DAV1D_DIR="${BUILD_ROOT}/dav1d/build-android-arm64"
+    DAV1D_INCLUDE="${BUILD_ROOT}/dav1d/include"
+    
+    # Copy generated version.h to include directory (generated during dav1d build)
+    if [ -f "${DAV1D_DIR}/include/dav1d/version.h" ]; then
+        cp "${DAV1D_DIR}/include/dav1d/version.h" "${DAV1D_INCLUDE}/dav1d/"
+        echo "Copied dav1d version.h to include directory"
+    fi
+    
+    # Use pkg-config wrapper script that enforces correct dav1d path
+    PKG_CONFIG_WRAPPER="${SCRIPT_DIR}/pkg-config-dav1d.sh"
+    if [ ! -x "$PKG_CONFIG_WRAPPER" ]; then
+        echo "ERROR: pkg-config wrapper not found at $PKG_CONFIG_WRAPPER"
+        exit 1
+    fi
+    
+    echo "DAV1D_DIR: ${DAV1D_DIR}"
+    echo "DAV1D_INCLUDE: ${DAV1D_INCLUDE}"
+    echo "PKG_CONFIG_WRAPPER: ${PKG_CONFIG_WRAPPER}"
+    
     ./configure \
         --prefix="${OUTPUT_DIR}/${ABI_DIR}" \
         --enable-cross-compile \
@@ -148,6 +170,7 @@ build_ffmpeg() {
         --cpu=${CPU} \
         --cc=${CC} \
         --cxx=${CXX} \
+        --pkg-config=${PKG_CONFIG_WRAPPER} \
         --enable-shared \
         --disable-static \
         --disable-doc \
@@ -170,20 +193,22 @@ build_ffmpeg() {
         --disable-bsfs \
         --disable-filters \
         --enable-filter=aformat,anull,atrim,format,null,trim,scale,volume \
-        --enable-decoder=opus,vorbis,flac,alac,mp3,mp2,mp1 \
+        --enable-decoder=opus,vorbis,flac,alac,mp3,mp2,mp1,aac,aac_latm,ac3 \
         --enable-decoder=pcm_s16le,pcm_s16be,pcm_s24le,pcm_s24be,pcm_s32le,pcm_f32le,pcm_f64le \
         --enable-decoder=pcm_mulaw,pcm_alaw,pcm_u8,pcm_s8 \
         --enable-decoder=wavpack,ape \
-        --enable-decoder=vp8,vp9,av1,theora \
+        --enable-decoder=vp8,vp9,libdav1d,theora,h264 \
+        --enable-libdav1d \
+        --disable-decoder=eac3 \
         --enable-decoder=mjpeg,rawvideo,gif,png,webp,bmp \
-        --enable-parser=opus,vorbis,flac,vp8,vp9,av1,mpegaudio \
+        --enable-parser=opus,vorbis,flac,vp8,vp9,av1,mpegaudio,aac,aac_latm,ac3,h264 \
         --enable-demuxer=ogg,flac,wav,matroska,webm,mp3,gif,apng,image2,concat,mov,mp4,m4v,avi \
         --enable-muxer=matroska,webm,mp4,mov,ogg,flac,wav,null \
         --enable-protocol=file,http,https,concat,data,pipe \
         --enable-swresample \
         --enable-swscale \
-        --extra-cflags="-O3 -fPIC -DANDROID ${EXTRA_CFLAGS:-}" \
-        --extra-ldflags="-Wl,-z,max-page-size=16384"
+        --extra-cflags="-O3 -fPIC -DANDROID ${EXTRA_CFLAGS:-} -I${DAV1D_INCLUDE}" \
+        --extra-ldflags="-Wl,-z,max-page-size=16384 -L${DAV1D_DIR}/src -ldav1d"
     
     echo ""
     echo "Building FFmpeg (this may take a few minutes)..."
@@ -225,10 +250,10 @@ generate_metadata() {
     "min_android_api": 24,
     "16kb_aligned": true,
     "neon_enabled": ${NEON_STATUS},
-    "note": "Royalty-free codecs only with NEON/SIMD optimizations. No patented codecs (DTS, TrueHD, AC3, AAC, H.264, H.265).",
-    "codecs_audio": "opus,vorbis,flac,alac,mp3,pcm_*,wavpack,ape",
-    "codecs_video": "vp8,vp9,av1,theora,mjpeg,rawvideo,gif,png,webp,bmp",
-    "excluded_patented": "dca,truehd,mlp,ac3,eac3,aac,h264,hevc,mpeg2video,mpeg4",
+    "note": "Includes H.264, AAC, AC3 (expiring patents). Excludes DTS, TrueHD, HEVC (active patents).",
+    "codecs_audio": "opus,vorbis,flac,alac,mp3,pcm_*,wavpack,ape,aac,ac3",
+    "codecs_video": "vp8,vp9,av1,theora,mjpeg,rawvideo,gif,png,webp,bmp,h264",
+    "excluded_patented": "dca,truehd,mlp,hevc",
     "required_libraries": [
         "libavutil.so",
         "libswresample.so",
