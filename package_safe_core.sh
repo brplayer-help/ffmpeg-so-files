@@ -17,17 +17,17 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_ROOT="${SCRIPT_DIR}/.."
-FFMPEG_SRC="${BUILD_ROOT}/ffmpeg-6.1.1"
+FFMPEG_SRC="${BUILD_ROOT}/ffmpeg-8.1"
 OUTPUT_DIR="${BUILD_ROOT}/packages/safe-core"
 
 # FFmpeg version
-FFMPEG_VERSION="6.1.1"
+FFMPEG_VERSION="8.1"
 
 # Target architecture (default: arm64-v8a)
 TARGET_ARCH="${1:-arm64-v8a}"
 
 # NDK setup
-export ANDROID_NDK_HOME="${ANDROID_NDK_HOME:-$HOME/Android/Sdk/ndk/26.1.10909125}"
+export ANDROID_NDK_HOME="${ANDROID_NDK_HOME:-$HOME/Android/Sdk/ndk/29.0.14206865}"
 TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64"
 export PATH="$TOOLCHAIN/bin:$PATH"
 
@@ -120,23 +120,29 @@ build_ffmpeg() {
     sed -i "s/SLIB_INSTALL_NAME='\$(SLIBNAME_WITH_VERSION)'/SLIB_INSTALL_NAME='\$(SLIBNAME)'/g" configure
     sed -i "s/SLIB_INSTALL_LINKS='\$(SLIBNAME_WITH_MAJOR) \$(SLIBNAME)'/SLIB_INSTALL_LINKS='\$(SLIBNAME)'/g" configure
     
-    # Configure for Safe Core - EXPIRING PATENT CODECS INCLUDED
+    # Configure for Safe Core - SOFTWARE DECODING CODECS
     # 
-    # This build includes codecs with patents expiring by 2027-2028:
+    # This build includes codecs for software decoding (no royalties for end users):
     #   - H.264/AVC (core patents expiring 2027-2028)
+    #   - HEVC/H.265 (software decoding - no charges to end users)
     #   - AAC (patents expiring 2027-2028)  
     #   - AC3 (Dolby Digital - patents largely expired)
     #   - MP3 (patent-free since 2017)
     #
-    # EXCLUDED (active patents/enforcement):
+    # Note: HEVC software decoding is royalty-free for end users.
+    # Patent pools (MPEG LA, HEVC Advance) only charge for:
+    #   - Hardware manufacturers embedding decoders in chips
+    #   - Content distributors/streaming services
+    # Open source software decoders are generally safe for distribution.
+    #
+    # EXCLUDED (active patents/enforcement for distribution):
     #   - DTS/DTS-HD (patent-encumbered)
     #   - TrueHD/MLP (Dolby lossless patents)
-    #   - HEVC/H.265 (patents until late 2030s)
     #   - E-AC3/Dolby Digital Plus (Dolby actively enforces)
     #
     # INCLUDED:
     #   Audio: Opus, Vorbis, FLAC, ALAC, PCM, MP3, AAC, AC3
-    #   Video: VP8, VP9, AV1, Theora, H.264
+    #   Video: VP8, VP9, AV1, Theora, H.264, HEVC
     #
     # NEON/SIMD optimizations enabled for better performance
     #
@@ -197,11 +203,11 @@ build_ffmpeg() {
         --enable-decoder=pcm_s16le,pcm_s16be,pcm_s24le,pcm_s24be,pcm_s32le,pcm_f32le,pcm_f64le \
         --enable-decoder=pcm_mulaw,pcm_alaw,pcm_u8,pcm_s8 \
         --enable-decoder=wavpack,ape \
-        --enable-decoder=vp8,vp9,libdav1d,theora,h264 \
+        --enable-decoder=vp8,vp9,libdav1d,theora,h264,hevc \
         --enable-libdav1d \
         --disable-decoder=eac3 \
         --enable-decoder=mjpeg,rawvideo,gif,png,webp,bmp \
-        --enable-parser=opus,vorbis,flac,vp8,vp9,av1,mpegaudio,aac,aac_latm,ac3,h264 \
+        --enable-parser=opus,vorbis,flac,vp8,vp9,av1,mpegaudio,aac,aac_latm,ac3,h264,hevc \
         --enable-demuxer=ogg,flac,wav,matroska,webm,mp3,gif,apng,image2,concat,mov,mp4,m4v,avi \
         --enable-muxer=matroska,webm,mp4,mov,ogg,flac,wav,null \
         --enable-protocol=file,http,https,concat,data,pipe \
@@ -240,20 +246,21 @@ generate_metadata() {
     
     cat > "$METADATA_FILE" << EOF
 {
-    "format_version": 1,
+    "format_version": 2,
     "ffmpeg_version": "${FFMPEG_VERSION}",
     "build_type": "safe-core",
-    "build_label": "Safe Core (Royalty-Free, NEON Optimized)",
+    "dav1d_version": "$(grep -oP '"version": "\K[^"]+' "${DAV1D_DIR}/meson-info/intro-projectinfo.json" 2>/dev/null || echo 'unknown')",
+    "build_label": "Safe Core (Software Decoding, NEON Optimized)",
     "license": "LGPL-2.1",
     "abi": "${ABI_DIR}",
     "build_date": "${BUILD_DATE}",
     "min_android_api": 24,
     "16kb_aligned": true,
     "neon_enabled": ${NEON_STATUS},
-    "note": "Includes H.264, AAC, AC3 (expiring patents). Excludes DTS, TrueHD, HEVC (active patents).",
+    "note": "Includes H.264, HEVC, AAC, AC3 for software decoding. HEVC SW decoding is royalty-free for end users.",
     "codecs_audio": "opus,vorbis,flac,alac,mp3,pcm_*,wavpack,ape,aac,ac3",
-    "codecs_video": "vp8,vp9,av1,theora,mjpeg,rawvideo,gif,png,webp,bmp,h264",
-    "excluded_patented": "dca,truehd,mlp,hevc",
+    "codecs_video": "vp8,vp9,av1,theora,mjpeg,rawvideo,gif,png,webp,bmp,h264,hevc",
+    "excluded_patented": "dca,truehd,mlp,eac3",
     "required_libraries": [
         "libavutil.so",
         "libswresample.so",
