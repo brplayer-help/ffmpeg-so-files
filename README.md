@@ -8,14 +8,14 @@ This guide helps you compile a custom codec pack containing decoders/encoders th
 
 To get the exact build parameters for your device, copy and paste this simple instruction into your AI chat:
 
-> **Prompt for the AI:**
-> "I want to build a custom codec pack for my Android device: **[INSERT YOUR DEVICE NAME HERE]** (e.g., Pixel 8, Samsung S24).
-> I need support for media formats/codecs that are currently unsupported or failing to play on my device.
->
-> Please:
-> 1. Identify the CPU architecture (ABI) of my device.
-> 2. Generate the minimal FFmpeg configure flags to enable the necessary decoders/encoders for the missing formats.
-> 3. Provide the exact input parameters I should type into the manual GitHub Actions workflow (`build-ffmpeg.yml`). Configure it to build ONLY for my device's architecture to save build time and compute."
+**Prompt for the AI:**
+"I want to build a custom codec pack for my Android device: **[INSERT YOUR DEVICE NAME HERE]** (e.g., Pixel 8, Samsung S24).
+I need support for media formats/codecs that are currently unsupported or failing to play on my device.
+
+Please:
+1. Identify the CPU architecture (ABI) of my device.
+2. Generate the minimal FFmpeg configure flags to enable the necessary decoders/encoders for the missing formats.
+3. Provide the exact input parameters I should type into the manual GitHub Actions workflow (`build-ffmpeg.yml`). Configure it to build ONLY for my device's architecture to save build time and compute."
 
 ---
 
