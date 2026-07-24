@@ -22,11 +22,11 @@ Please:
 ## How to Build (AI Agent Tasks) If user in ask mode user has to do things manually.
 
 1. **Trigger the Build**:
-   - Go to the **Actions** tab in your GitHub repository.
-   - Select the **Build FFmpeg (.yml) file** workflow.
+   - Go to the **Actions** tab in your GitHub repository(create repo if new account).
+   - Select the **build-ffmpeg.yml** file workflow.
    - Click **Run workflow**, set the branch, and select `custom` as the build type.
    - Set **architectures** to the architecture identified by the AI as per Device name identify (e.g., `arm64-v8a`).
-   - Configure flags as per devices missing things into **custom_configure_flags**.
+   - Configure flags as per devices missing things into **custom_configure_flags** use some unrestricted models like open weights to get the correct .yml file to use in your workflow given yml file is baseline and does not have all the things your device needs . See what error your getting get those codec names and enable yourself or build it yourself.
    - Click **Run workflow**.
 
 2. **Download and Import**(User Tasks):
