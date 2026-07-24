@@ -18,26 +18,6 @@ To get the exact build parameters for your device, copy and paste this simple in
 > 3. Provide the exact input parameters I should type into the manual GitHub Actions workflow (`build-ffmpeg.yml`). Configure it to build ONLY for my device's architecture to save build time and compute."
 
 ---
-## Building Your Own .so Files
-
-### Prerequisites
-
-1. **Android NDK** (version 27+ recommended)
-   ```bash
-   # Install via Android Studio or download from:
-   # https://developer.android.com/ndk/downloads
-   
-   export ANDROID_NDK_HOME=$HOME/Android/Sdk/ndk/yourversion
-
-2. **FFmpeg Source Code (You can use latest stable things whatever major branch currently supported will be listed)**
-   ```bash
-   #  for AI VIDEO PLAYER app version below 9.0 Download FFmpeg 6.1.1 
-   wget https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz
-   tar xf ffmpeg-6.1.1.tar.xz
-   cd ffmpeg-6.1.1
-    #  for AI VIDEO PLAYER app version above 9.0 Download FFmpeg 8.1
-   wget https://ffmpeg.org/releases/ffmpeg-8.1.tar.xz
-
 
 ## How to Build (AI Agent Tasks)
 
