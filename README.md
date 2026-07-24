@@ -10,7 +10,7 @@
    
    export ANDROID_NDK_HOME=$HOME/Android/Sdk/ndk/yourversion
 
-2. **FFmpeg Source Code**
+2. **FFmpeg Source Code (You can use latest stable things whatever major branch currently supported will be listed)**
    ```bash
    #  for AI VIDEO PLAYER app version below 9.0 Download FFmpeg 6.1.1 
    wget https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz
