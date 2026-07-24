@@ -50,12 +50,15 @@ Create a ZIP file with this structure:
 ```
 ffmpeg-codecs-arm64-v8a.zip
 ├── metadata.json           # Build information
-└── arm64-v8a/              # ABI folder
-    ├── libavutil.so
-    ├── libswresample.so
-    ├── libavcodec.so
-    ├── libavformat.so
-    ├── libswscale.so
-    └── libavfilter.so
+└── arm64-v8a/
+├── libavcodec.so
+├── libavdevice.so
+├── libavfilter.so
+├── libavformat.so
+├── libavutil.so
+├── libpostproc.so
+├── libswresample.so
+└── libswscale.so
+
 ```
 
