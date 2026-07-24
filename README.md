@@ -19,7 +19,7 @@ Please:
 
 ---
 
-## How to Build (AI Agent Tasks)
+## How to Build (AI Agent Tasks) If user in ask mode user has to do things manually.
 
 1. **Trigger the Build**:
    - Go to the **Actions** tab in your GitHub repository.
