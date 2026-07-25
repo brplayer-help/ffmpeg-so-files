@@ -2,6 +2,7 @@
 
 This guide helps you compile a custom codec pack containing decoders/encoders that are missing or unsupported on your specific Android device. The build runs privately on GitHub's infrastructure and outputs a ZIP file you can import directly into the app.
 
+## https://youtu.be/J-CP8ACir1Q?si=He6AdzsIQgyWbVuS
 ---
 
 ## Ask GitHub Copilot or AI Assistant
