@@ -1,10 +1,10 @@
 # Custom Codec Pack Builder
 
-This guide helps you compile a custom codec pack containing decoders/encoders that are missing or unsupported on your specific Android device. The build runs privately on GitHub's infrastructure and outputs a ZIP file you can import directly into the app.
-
 #### 🎬 Video Walkthrough (2 minutes) 
 
 [![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/J-CP8ACir1Q)
+
+This guide helps you compile a custom codec pack containing decoders/encoders that are missing or unsupported on your specific Android device. The build runs on GitHub's infrastructure and outputs a ZIP file you can import directly into the app.
 
 ---
 
